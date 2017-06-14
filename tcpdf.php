@@ -18830,11 +18830,9 @@ Putting 1 is equivalent to putting 0 and calling Ln() just after. Default value:
 					if (!isset($tag['height'])) {
 						$tag['height'] = 0;
 					}
-					//if (!isset($tag['attribute']['align'])) {
-						// the only alignment supported is "bottom"
-						// further development is required for other modes.
+					if (!isset($tag['attribute']['align'])) {
 						$tag['attribute']['align'] = 'bottom';
-					//}
+					}
 					switch($tag['attribute']['align']) {
 						case 'top': {
 							$align = 'T';
