@@ -121,6 +121,12 @@ class Datamatrix {
 	 */
 	protected $last_enc = ENC_ASCII;
 
+    /**
+     * Used to store a forced encoding for the code rather than switching to match the best for the data
+     * @protected
+     */
+	protected $forcedEncoding = null;
+
 	/**
 	 * Table of Data Matrix ECC 200 Symbol Attributes:<ul>
 	 * <li>total matrix rows (including finder pattern)</li>
@@ -230,10 +236,12 @@ class Datamatrix {
 	 * This is the class constructor.
 	 * Creates a datamatrix object
 	 * @param $code (string) Code to represent using Datamatrix.
+     * @param $encoding (int) One of the defined constants above representing an encoding to use throughout the entire code
 	 * @public
 	 */
-	public function __construct($code) {
+	public function __construct($code, $encoding = null) {
 		$barcode_array = array();
+		$this->forcedEncoding = $encoding;
 		if ((is_null($code)) OR ($code == '\0') OR ($code == '')) {
 			return false;
 		}
@@ -512,15 +520,51 @@ class Datamatrix {
 		return $status;
 	}
 
-	/**
+    /**
+     * Mostly returns isCharMode but with extra checks for C40 and TXT to see if the character is encodable by them
+     * instead of just if its in the first code page like isCharMode does. Only used when forcing an encoding
+     *
+     * @param $chr (int) Character (byte) to check.
+     * @param $mode (int) Current encoding mode.
+     * @return boolean true if the char is encodable by the selected mode
+     */
+    protected function isEncodableBy($chr, $mode) {
+
+
+        switch ($mode) {
+            case ENC_C40:
+            case ENC_TXT:
+                return $this->isCharMode($chr, $mode) OR (isset($this->chset['SH1'][$chr])) OR (isset($chr, $this->chset['SH2'][$chr])) OR (($mode == ENC_C40) AND isset($this->chset['S3C'][$chr])) OR (($mode == ENC_TXT) AND isset($this->chset['S3T'][$chr]));
+
+            case ENC_X12:
+                return (isset($this->chset[$this->chset_id[$mode]][$chr]));
+
+            case ENC_BASE256:
+                return (($chr >= 0) AND ($chr <= 255));
+        }
+
+        return $this->isCharMode($chr, $mode);
+    }
+
+    /**
 	 * The look-ahead test scans the data to be encoded to find the best mode (Annex P - steps from J to S).
 	 * @param $data (string) data to encode
 	 * @param $pos (int) current position
 	 * @param $mode (int) current encoding mode
 	 * @return int encoding mode
 	 * @protected
+     *
+     * @throws Exception if the forced encoding can't encode the data
 	 */
 	protected function lookAheadTest($data, $pos, $mode) {
+	    //If we have many characters remaining and an encoding then see if we can encode in it else determine best encoding to finish the data
+	    if($this->forcedEncoding !== null && $pos < strlen($data) - 3){
+	        if( $this->isEncodableBy(ord($data[$pos]), $this->forcedEncoding)) {
+                return $this->forcedEncoding;
+            }else{
+	            throw new Exception("Character '$data[$pos]' isn't encodable in '$this->forcedEncoding' ");
+            }
+        }
 		$data_length = strlen($data);
 		if ($pos >= $data_length) {
 			return $mode;
