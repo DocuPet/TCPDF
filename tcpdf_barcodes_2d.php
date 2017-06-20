@@ -67,6 +67,9 @@ class TCPDF2DBarcode {
      * @param $extra (mixed) extra data to pass to barcode classes, currently only used by Datamatrix
 	 */
 	public function __construct($code, $type, $extra = null) {
+        if(!is_string($code)){
+            throw new InvalidArgumentException('$code must be a string!');
+        }
 		$this->setBarcode($code, $type, $extra);
 	}
 

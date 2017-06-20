@@ -71,7 +71,11 @@ class TCPDFBarcode {
  	 * @public
 	 */
 	public function __construct($code, $type) {
-		$this->setBarcode($code, $type);
+        if (!is_string($code)) {
+            throw new InvalidArgumentException('$code must be a string!');
+        }
+
+        $this->setBarcode($code, $type);
 	}
 
 	/**
@@ -748,6 +752,7 @@ class TCPDFBarcode {
 		if($r > 0) {
 			$r = (10 - $r);
 		}
+
 		return $r;
 	}
 
@@ -892,6 +897,9 @@ class TCPDFBarcode {
 	 * @protected
 	 */
 	protected function barcode_i25($code, $checksum=false) {
+        //valid I25 must be pairs of digits, so prepend a 0 if its invalid. check for odd if checksum = false otherwise check for even since the checksum counts as a digit
+        $code = strlen($code) % 2 !== (int)$checksum ? "0" . $code : $code;
+
 		$chr['0'] = '11221';
 		$chr['1'] = '21112';
 		$chr['2'] = '12112';
@@ -2171,7 +2179,7 @@ class TCPDFBarcode {
 
 	/**
 	 * IMB - Intelligent Mail Barcode - Onecode - USPS-B-3200
-	 * 
+	 *
 	 * @param $code (string) pre-formatted IMB barcode (65 chars "FADT")
 	 * @return array barcode representation.
 	 * @protected
