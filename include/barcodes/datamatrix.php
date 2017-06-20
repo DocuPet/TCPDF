@@ -241,7 +241,17 @@ class Datamatrix {
 	 */
 	public function __construct($code, $encoding = null) {
 		$barcode_array = array();
-		$this->forcedEncoding = $encoding;
+
+        if ($encoding !== null) {
+            //ensure that the string is encodable in this format
+            foreach (str_split($code) as $chr) {
+                if (!$this->isEncodableBy(ord($chr), $encoding)) {
+                    throw new LogicException("Character '$chr' isn't encodable in '$encoding' ");
+                }
+            }
+            $this->forcedEncoding = $encoding;
+        }
+
 		if ((is_null($code)) OR ($code == '\0') OR ($code == '')) {
 			return false;
 		}
@@ -557,14 +567,15 @@ class Datamatrix {
      * @throws Exception if the forced encoding can't encode the data
 	 */
 	protected function lookAheadTest($data, $pos, $mode) {
-	    //If we have many characters remaining and an encoding then see if we can encode in it else determine best encoding to finish the data
-	    if($this->forcedEncoding !== null && $pos < strlen($data) - 3){
-	        if( $this->isEncodableBy(ord($data[$pos]), $this->forcedEncoding)) {
+        if ($this->forcedEncoding !== null) {
+            //If we don't have many characters remaining then encode it in ASCII finish the data since ASCII is always valid
+            if ($pos < strlen($data) - 3) {
                 return $this->forcedEncoding;
-            }else{
-	            throw new Exception("Character '$data[$pos]' isn't encodable in '$this->forcedEncoding' ");
+            } else {
+                return ENC_ASCII;
             }
         }
+
 		$data_length = strlen($data);
 		if ($pos >= $data_length) {
 			return $mode;
