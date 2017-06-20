@@ -238,6 +238,7 @@ class Datamatrix {
 	 * @param $code (string) Code to represent using Datamatrix.
      * @param $encoding (int) One of the defined constants above representing an encoding to use throughout the entire code
 	 * @public
+     * @throws LogicException if $code isn't encodable by $encoding
 	 */
 	public function __construct($code, $encoding = null) {
 		$barcode_array = array();
@@ -563,8 +564,6 @@ class Datamatrix {
 	 * @param $mode (int) current encoding mode
 	 * @return int encoding mode
 	 * @protected
-     *
-     * @throws Exception if the forced encoding can't encode the data
 	 */
 	protected function lookAheadTest($data, $pos, $mode) {
         if ($this->forcedEncoding !== null) {
