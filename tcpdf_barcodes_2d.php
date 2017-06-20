@@ -64,9 +64,14 @@ class TCPDF2DBarcode {
 	 * <li>$arrcode['bcode'][$r][$c] value of the cell is $r row and $c column (0 = transparent, 1 = black)</li></ul>
 	 * @param $code (string) code to print
  	 * @param $type (string) type of barcode: <ul><li>DATAMATRIX : Datamatrix (ISO/IEC 16022)</li><li>PDF417 : PDF417 (ISO/IEC 15438:2006)</li><li>PDF417,a,e,t,s,f,o0,o1,o2,o3,o4,o5,o6 : PDF417 with parameters: a = aspect ratio (width/height); e = error correction level (0-8); t = total number of macro segments; s = macro segment index (0-99998); f = file ID; o0 = File Name (text); o1 = Segment Count (numeric); o2 = Time Stamp (numeric); o3 = Sender (text); o4 = Addressee (text); o5 = File Size (numeric); o6 = Checksum (numeric). NOTES: Parameters t, s and f are required for a Macro Control Block, all other parametrs are optional. To use a comma character ',' on text options, replace it with the character 255: "\xff".</li><li>QRCODE : QRcode Low error correction</li><li>QRCODE,L : QRcode Low error correction</li><li>QRCODE,M : QRcode Medium error correction</li><li>QRCODE,Q : QRcode Better error correction</li><li>QRCODE,H : QR-CODE Best error correction</li><li>RAW: raw mode - comma-separad list of array rows</li><li>RAW2: raw mode - array rows are surrounded by square parenthesis.</li><li>TEST : Test matrix</li></ul>
+     * @param $extra (mixed) extra data to pass to barcode classes, currently only used by Datamatrix
+     * @throws InvalidArgumentException if $code isn't a string
 	 */
-	public function __construct($code, $type) {
-		$this->setBarcode($code, $type);
+	public function __construct($code, $type, $extra = null) {
+        if(!is_string($code)){
+            throw new InvalidArgumentException('$code must be a string!');
+        }
+		$this->setBarcode($code, $type, $extra);
 	}
 
 	/**
@@ -247,15 +252,16 @@ class TCPDF2DBarcode {
 	 * Set the barcode.
 	 * @param $code (string) code to print
  	 * @param $type (string) type of barcode: <ul><li>DATAMATRIX : Datamatrix (ISO/IEC 16022)</li><li>PDF417 : PDF417 (ISO/IEC 15438:2006)</li><li>PDF417,a,e,t,s,f,o0,o1,o2,o3,o4,o5,o6 : PDF417 with parameters: a = aspect ratio (width/height); e = error correction level (0-8); t = total number of macro segments; s = macro segment index (0-99998); f = file ID; o0 = File Name (text); o1 = Segment Count (numeric); o2 = Time Stamp (numeric); o3 = Sender (text); o4 = Addressee (text); o5 = File Size (numeric); o6 = Checksum (numeric). NOTES: Parameters t, s and f are required for a Macro Control Block, all other parametrs are optional. To use a comma character ',' on text options, replace it with the character 255: "\xff".</li><li>QRCODE : QRcode Low error correction</li><li>QRCODE,L : QRcode Low error correction</li><li>QRCODE,M : QRcode Medium error correction</li><li>QRCODE,Q : QRcode Better error correction</li><li>QRCODE,H : QR-CODE Best error correction</li><li>RAW: raw mode - comma-separad list of array rows</li><li>RAW2: raw mode - array rows are surrounded by square parenthesis.</li><li>TEST : Test matrix</li></ul>
+     * @param $extra (mixed) extra data to pass to barcode classes, currently only used by Datamatrix
  	 * @return array
 	 */
-	public function setBarcode($code, $type) {
+	public function setBarcode($code, $type, $extra = null) {
 		$mode = explode(',', $type);
 		$qrtype = strtoupper($mode[0]);
 		switch ($qrtype) {
 			case 'DATAMATRIX': { // DATAMATRIX (ISO/IEC 16022)
 				require_once(dirname(__FILE__).'/include/barcodes/datamatrix.php');
-				$qrcode = new Datamatrix($code);
+				$qrcode = new Datamatrix($code, $extra);
 				$this->barcode_array = $qrcode->getBarcodeArray();
 				$this->barcode_array['code'] = $code;
 				break;

@@ -15509,7 +15509,7 @@ class TCPDF {
 	 * @since 4.5.037 (2009-04-07)
 	 * @public
 	 */
-	public function write2DBarcode($code, $type, $x='', $y='', $w='', $h='', $style='', $align='', $distort=false) {
+	public function write2DBarcode($code, $type, $x='', $y='', $w='', $h='', $style='', $align='', $distort=false, $extra=null) {
 		if (TCPDF_STATIC::empty_string(trim($code))) {
 			return;
 		}
@@ -15517,7 +15517,7 @@ class TCPDF {
 		// save current graphic settings
 		$gvars = $this->getGraphicVars();
 		// create new barcode object
-		$barcodeobj = new TCPDF2DBarcode($code, $type);
+		$barcodeobj = new TCPDF2DBarcode($code, $type, $extra);
 		$arrcode = $barcodeobj->getBarcodeArray();
 		if (($arrcode === false) OR empty($arrcode) OR !isset($arrcode['num_rows']) OR ($arrcode['num_rows'] == 0) OR !isset($arrcode['num_cols']) OR ($arrcode['num_cols'] == 0)) {
 			$this->Error('Error in 2D barcode string');
