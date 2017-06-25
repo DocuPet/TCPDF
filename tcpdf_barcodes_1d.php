@@ -72,11 +72,7 @@ class TCPDFBarcode {
      * @throws InvalidArgumentException if $code isn't a string
 	 */
 	public function __construct($code, $type) {
-        if (!is_string($code)) {
-            throw new InvalidArgumentException('$code must be a string!');
-        }
-
-        $this->setBarcode($code, $type);
+        $this->setBarcode((string)$code, $type);
 	}
 
 	/**
